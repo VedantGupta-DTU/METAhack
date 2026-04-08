@@ -105,7 +105,7 @@ class KernelEnvironment(Environment):
         """Execute agent's patched code and grade it."""
         if self._current_task is None:
             return AppSecObservation(
-                done=True, reward=0.0,
+                done=True, reward=0.001,
                 stderr="Error: No task loaded. Call reset() first.",
             )
 
@@ -154,12 +154,14 @@ class KernelEnvironment(Environment):
 
         # Efficiency bonus for solving in fewer attempts
         attempts_remaining = MAX_ATTEMPTS - self._state.step_count
-        if functional_score == 1.0 and security_score == 1.0:
+        if functional_score >= 0.99 and security_score >= 0.99:
             efficiency_bonus = 0.05 * (attempts_remaining / MAX_ATTEMPTS)
             reward = reward + efficiency_bonus
-            
-        # Ensure reward is strictly between (0, 1) to pass Phase 2 Deep Validation
+
+        # Ensure ALL scores are strictly between (0, 1) — Phase 2 Deep Validation
         reward = max(0.001, min(0.999, reward))
+        functional_score = max(0.001, min(0.999, functional_score))
+        security_score = max(0.001, min(0.999, security_score))
 
         self._state.best_score = max(self._state.best_score, reward)
 

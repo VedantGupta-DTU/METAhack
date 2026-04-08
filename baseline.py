@@ -341,7 +341,7 @@ def run_baseline_direct():
             code = strat_fn(task)
             obs = env.step(AppSecAction(code=code))
 
-            reward = obs.reward if obs.reward is not None else 0.0
+            reward = obs.reward if obs.reward is not None else 0.001
             totals[strat_name] += reward
 
             print(f" {reward:>10.2f}", end="")

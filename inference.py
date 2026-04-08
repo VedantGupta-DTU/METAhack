@@ -154,7 +154,9 @@ def run_task(task_id, max_steps=5):
         action = AppSecAction(code=code)
         obs = env.step(action)
 
-        reward = obs.reward if obs.reward is not None else 0.0
+        reward = obs.reward if obs.reward is not None else 0.001
+        # Ensure reward is strictly within (0, 1)
+        reward = max(0.001, min(0.999, reward))
         rewards.append(reward)
         done = obs.done
 
