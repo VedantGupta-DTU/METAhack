@@ -182,8 +182,8 @@ def test_grader_oracle():
         obs = env.step(KernelAction(code=oracle_code))
 
         reward = obs.reward if obs.reward is not None else 0.0
-        # Oracle should get at least 1.0 (with efficiency bonus it could be > 1.0 but capped)
-        if obs.tests_passed == obs.tests_total and obs.tests_total > 0 and reward >= 1.0:
+        # Oracle should get at least 0.999 (with efficiency bonus it could be > 1.0 but capped)
+        if obs.tests_passed == obs.tests_total and obs.tests_total > 0 and reward >= 0.999:
             _ok(f"{task.task_id} [{task.difficulty}]", f"{obs.tests_passed}/{obs.tests_total} | reward={reward:.2f}")
         else:
             _fail(f"{task.task_id} [{task.difficulty}]",
@@ -360,7 +360,7 @@ def test_models():
 
     # 5c. KernelState defaults
     state = KernelState()
-    if state.max_attempts == 10 and state.best_score == 0.0:
+    if state.max_attempts == 10 and state.best_score == 0.001:
         _ok("KernelState defaults")
     else:
         _fail("KernelState defaults")

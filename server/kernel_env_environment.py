@@ -66,7 +66,7 @@ class KernelEnvironment(Environment):
             task_id=self._current_task.task_id,
             difficulty=self._current_task.difficulty,
             max_attempts=MAX_ATTEMPTS,
-            best_score=0.0,
+            best_score=0.001,
         )
 
         func_tests = [tc for tc in self._current_task.test_cases if tc.test_type == "functional"]
@@ -74,7 +74,7 @@ class KernelEnvironment(Environment):
 
         return AppSecObservation(
             done=False,
-            reward=0.0,
+            reward=0.001,
             task_id=self._current_task.task_id,
             task_description=self._current_task.description,
             vulnerability_type=self._current_task.vulnerability_type,
@@ -89,8 +89,8 @@ class KernelEnvironment(Environment):
             functional_tests_total=len(func_tests),
             security_tests_passed=0,
             security_tests_total=len(sec_tests),
-            functional_score=0.0,
-            security_score=0.0,
+            functional_score=0.001,
+            security_score=0.001,
             test_feedback=[],
             attempts_remaining=MAX_ATTEMPTS,
             attempts_used=0,
@@ -141,19 +141,25 @@ class KernelEnvironment(Environment):
 
         functional_score = func_passed / func_total if func_total > 0 else 0.0
         security_score = sec_passed / sec_total if sec_total > 0 else 0.0
+        
+        functional_score = max(0.001, min(0.999, functional_score))
+        security_score = max(0.001, min(0.999, security_score))
 
         # Reward = 50% functional + 50% security
         reward = 0.5 * functional_score + 0.5 * security_score
 
         # Small bonus for code that runs without errors
-        if exec_result.success and reward == 0.0:
+        if exec_result.success and reward <= 0.001:
             reward = 0.02
 
         # Efficiency bonus for solving in fewer attempts
         attempts_remaining = MAX_ATTEMPTS - self._state.step_count
         if functional_score == 1.0 and security_score == 1.0:
             efficiency_bonus = 0.05 * (attempts_remaining / MAX_ATTEMPTS)
-            reward = min(1.0, reward + efficiency_bonus)
+            reward = reward + efficiency_bonus
+            
+        # Ensure reward is strictly between (0, 1) to pass Phase 2 Deep Validation
+        reward = max(0.001, min(0.999, reward))
 
         self._state.best_score = max(self._state.best_score, reward)
 
