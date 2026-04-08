@@ -1,0 +1,8 @@
+spec_version: 1
+name: kernel_env
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
+version: "1.0.0"
+description: "AppSecEnv — Application Security Vulnerability Auto-Patcher. AI agents receive vulnerable Python code and must patch security flaws (XSS, SQLi, SSRF, IDOR, Command Injection, etc.) without breaking business logic. Dual-graded: functional correctness + exploit prevention."
