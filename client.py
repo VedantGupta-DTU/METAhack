@@ -29,8 +29,8 @@ class AppSecEnv(EnvClient[AppSecAction, AppSecObservation, AppSecState]):
             functional_tests_total=obs_data.get("functional_tests_total", 0),
             security_tests_passed=obs_data.get("security_tests_passed", 0),
             security_tests_total=obs_data.get("security_tests_total", 0),
-            functional_score=obs_data.get("functional_score", 0.001),
-            security_score=obs_data.get("security_score", 0.001),
+            functional_score=obs_data.get("functional_score", 0.01),
+            security_score=obs_data.get("security_score", 0.01),
             test_feedback=obs_data.get("test_feedback", []),
             attempts_remaining=obs_data.get("attempts_remaining", 0),
             attempts_used=obs_data.get("attempts_used", 0),
@@ -51,5 +51,5 @@ class AppSecEnv(EnvClient[AppSecAction, AppSecObservation, AppSecState]):
             task_id=payload.get("task_id", ""),
             difficulty=payload.get("difficulty", ""),
             max_attempts=payload.get("max_attempts", 10),
-            best_score=payload.get("best_score", 0.001),
+            best_score=payload.get("best_score", 0.01),
         )

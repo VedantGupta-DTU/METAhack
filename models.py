@@ -44,8 +44,8 @@ class AppSecObservation(Observation):
     functional_tests_total: int = Field(default=0, description="Total functional tests")
     security_tests_passed: int = Field(default=0, description="Security/exploit tests passed")
     security_tests_total: int = Field(default=0, description="Total security tests")
-    functional_score: float = Field(default=0.001, description="Functional score 0.0-1.0")
-    security_score: float = Field(default=0.001, description="Security score 0.0-1.0")
+    functional_score: float = Field(default=0.01, description="Functional score in (0, 1)")
+    security_score: float = Field(default=0.01, description="Security score in (0, 1)")
     test_feedback: List[str] = Field(default_factory=list, description="Per-test feedback")
 
     # Episode progress
@@ -59,4 +59,4 @@ class AppSecState(State):
     task_id: str = Field(default="", description="Current task identifier")
     difficulty: str = Field(default="", description="Current task difficulty")
     max_attempts: int = Field(default=10, description="Max attempts per episode")
-    best_score: float = Field(default=0.001, description="Best reward this episode")
+    best_score: float = Field(default=0.01, description="Best reward this episode")

@@ -29,6 +29,11 @@ except ImportError:
 MAX_ATTEMPTS = 10
 
 
+def _clamp(v: float) -> float:
+    """Clamp a score strictly into (0, 1) — never 0.0, never 1.0."""
+    return max(0.01, min(0.99, float(v)))
+
+
 class KernelEnvironment(Environment):
     """
     Application Security Vulnerability Auto-Patcher Environment.
@@ -66,7 +71,7 @@ class KernelEnvironment(Environment):
             task_id=self._current_task.task_id,
             difficulty=self._current_task.difficulty,
             max_attempts=MAX_ATTEMPTS,
-            best_score=0.001,
+            best_score=0.01,
         )
 
         func_tests = [tc for tc in self._current_task.test_cases if tc.test_type == "functional"]
@@ -74,7 +79,7 @@ class KernelEnvironment(Environment):
 
         return AppSecObservation(
             done=False,
-            reward=0.001,
+            reward=0.01,
             task_id=self._current_task.task_id,
             task_description=self._current_task.description,
             vulnerability_type=self._current_task.vulnerability_type,
@@ -89,8 +94,8 @@ class KernelEnvironment(Environment):
             functional_tests_total=len(func_tests),
             security_tests_passed=0,
             security_tests_total=len(sec_tests),
-            functional_score=0.001,
-            security_score=0.001,
+            functional_score=0.01,
+            security_score=0.01,
             test_feedback=[],
             attempts_remaining=MAX_ATTEMPTS,
             attempts_used=0,
@@ -105,7 +110,9 @@ class KernelEnvironment(Environment):
         """Execute agent's patched code and grade it."""
         if self._current_task is None:
             return AppSecObservation(
-                done=True, reward=0.001,
+                done=True, reward=0.01,
+                functional_score=0.01,
+                security_score=0.01,
                 stderr="Error: No task loaded. Call reset() first.",
             )
 
@@ -141,29 +148,30 @@ class KernelEnvironment(Environment):
 
         functional_score = func_passed / func_total if func_total > 0 else 0.0
         security_score = sec_passed / sec_total if sec_total > 0 else 0.0
-        
-        functional_score = max(0.001, min(0.999, functional_score))
-        security_score = max(0.001, min(0.999, security_score))
+
+        # Clamp individual scores strictly into (0, 1)
+        functional_score = _clamp(functional_score)
+        security_score = _clamp(security_score)
 
         # Reward = 50% functional + 50% security
         reward = 0.5 * functional_score + 0.5 * security_score
 
         # Small bonus for code that runs without errors
-        if exec_result.success and reward <= 0.001:
+        if exec_result.success and reward <= 0.02:
             reward = 0.02
 
         # Efficiency bonus for solving in fewer attempts
         attempts_remaining = MAX_ATTEMPTS - self._state.step_count
-        if functional_score >= 0.99 and security_score >= 0.99:
-            efficiency_bonus = 0.05 * (attempts_remaining / MAX_ATTEMPTS)
+        if functional_score >= 0.98 and security_score >= 0.98:
+            efficiency_bonus = 0.04 * (attempts_remaining / MAX_ATTEMPTS)
             reward = reward + efficiency_bonus
 
-        # Ensure ALL scores are strictly between (0, 1) — Phase 2 Deep Validation
-        reward = max(0.001, min(0.999, reward))
-        functional_score = max(0.001, min(0.999, functional_score))
-        security_score = max(0.001, min(0.999, security_score))
+        # Final clamp on ALL scores — Phase 2 Deep Validation
+        reward = _clamp(reward)
+        functional_score = _clamp(functional_score)
+        security_score = _clamp(security_score)
 
-        self._state.best_score = max(self._state.best_score, reward)
+        self._state.best_score = _clamp(max(self._state.best_score, reward))
 
         # Build feedback
         test_feedback = []
@@ -208,8 +216,8 @@ class KernelEnvironment(Environment):
             functional_tests_total=func_total,
             security_tests_passed=sec_passed,
             security_tests_total=sec_total,
-            functional_score=round(functional_score, 4),
-            security_score=round(security_score, 4),
+            functional_score=functional_score,
+            security_score=security_score,
             test_feedback=test_feedback,
             attempts_remaining=max(0, MAX_ATTEMPTS - self._state.step_count),
             attempts_used=self._state.step_count,
