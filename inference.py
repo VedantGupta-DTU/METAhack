@@ -155,8 +155,8 @@ def run_task(task_id, max_steps=5):
         obs = env.step(action)
 
         reward = obs.reward if obs.reward is not None else 0.001
-        # Ensure reward is strictly within (0, 1)
-        reward = max(0.001, min(0.999, reward))
+        # Ensure reward is strictly within (0, 1) to avoid 0.00 or 1.00 after rounding
+        reward = max(0.01, min(0.99, reward))
         rewards.append(reward)
         done = obs.done
 
@@ -169,7 +169,7 @@ def run_task(task_id, max_steps=5):
             error_msg = obs.stderr.replace("\n", " ").strip()
 
         print(
-            f"[STEP] step={step_num} action={action_short} reward={reward:.2f} "
+            f"[STEP] step={step_num} action={action_short} reward={reward:.3f} "
             f"done={'true' if done else 'false'} error={error_msg}"
         )
 
@@ -178,7 +178,7 @@ def run_task(task_id, max_steps=5):
                 success = True
             break
 
-    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    rewards_str = ",".join(f"{r:.3f}" for r in rewards)
     print(f"[END] success={'true' if success else 'false'} steps={steps} rewards={rewards_str}")
 
     return {"task_id": task_id, "success": success, "steps": steps, "rewards": rewards}
