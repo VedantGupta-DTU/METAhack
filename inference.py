@@ -178,10 +178,12 @@ def run_task(task_id, max_steps=5):
                 success = True
             break
 
+    # Task score = best (max) reward across all steps, clamped strictly in (0, 1)
+    task_score = max(0.01, min(0.99, max(rewards))) if rewards else 0.01
     rewards_str = ",".join(f"{r:.3f}" for r in rewards)
-    print(f"[END] success={'true' if success else 'false'} steps={steps} rewards={rewards_str}")
+    print(f"[END] success={task_score:.3f} steps={steps} rewards={rewards_str}")
 
-    return {"task_id": task_id, "success": success, "steps": steps, "rewards": rewards}
+    return {"task_id": task_id, "success": task_score, "steps": steps, "rewards": rewards}
 
 
 def main():
